@@ -10,10 +10,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-      - run: cd sfa_miitel-workflow-automation && rm -f package-lock.json && npm install
+      - run: cd sfa_miitel-workflow-automation && rm -rf node_modules package-lock.json && npm install
       - run: cd sfa_miitel-workflow-automation && npm run build
       - uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./sfa_miitel-workflow-automation/dist
-          
