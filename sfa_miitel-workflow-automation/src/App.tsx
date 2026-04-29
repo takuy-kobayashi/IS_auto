@@ -105,9 +105,10 @@ interface CodeCardProps {
   isEditable: boolean;
   onUpdate: (val: string) => void;
   accentColor: string;
+  isDiscontinued?: boolean;
 }
 
-const CodeCard = ({ id, title, value, isEditable, onUpdate, accentColor }: CodeCardProps) => {
+const CodeCard = ({ id, title, value, isEditable, onUpdate, accentColor, isDiscontinued }: CodeCardProps) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -122,43 +123,74 @@ const CodeCard = ({ id, title, value, isEditable, onUpdate, accentColor }: CodeC
       initial={{ opacity: 0, y: 10 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm mb-6 hover:shadow-lg transition-all duration-300 relative overflow-hidden group"
+      className={`bg-white border border-slate-200 rounded-2xl p-6 shadow-sm mb-6 hover:shadow-lg transition-all duration-300 relative overflow-hidden group ${
+        isDiscontinued ? 'opacity-75 grayscale-[0.5]' : ''
+      }`}
     >
-      <div className={`absolute top-0 left-0 w-1 h-full ${accentColor}`} />
+      <div className={`absolute top-0 left-0 w-1 h-full ${isDiscontinued ? 'bg-slate-400' : accentColor}`} />
       
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-          <Terminal size={18} className="text-slate-400 group-hover:text-amber-500 transition-colors" />
-          {title}
-        </h3>
-        {isEditable && (
-          <span className="text-[10px] bg-amber-100 text-amber-700 px-3 py-1 rounded-full font-black shadow-sm border border-amber-200">
-            編集モード有効
-          </span>
-        )}
+        <div className="flex flex-col gap-1">
+          <h3 className={`text-lg font-bold flex items-center gap-2 ${isDiscontinued ? 'text-slate-500 line-through' : 'text-slate-800'}`}>
+            <Terminal size={18} className="text-slate-400 group-hover:text-amber-500 transition-colors" />
+            {title}
+          </h3>
+          {isDiscontinued && (
+            <div className="flex items-center gap-1.5 text-rose-600 font-black text-[10px] uppercase tracking-wider">
+              <AlertTriangle size={12} />
+              現在このスクリプトの展開は停止されています
+            </div>
+          )}
+        </div>
+        <div className="flex gap-2">
+          {isEditable && (
+            <span className="text-[10px] bg-amber-100 text-amber-700 px-3 py-1 rounded-full font-black shadow-sm border border-amber-200">
+              編集モード有効
+            </span>
+          )}
+          {isDiscontinued && (
+            <span className="text-[10px] bg-rose-100 text-rose-700 px-3 py-1 rounded-full font-black shadow-sm border border-rose-200">
+              展開中止
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="relative">
+        {isDiscontinued && (
+          <div className="absolute inset-0 z-10 bg-slate-900/5 backdrop-blur-[1px] flex items-center justify-center rounded-xl pointer-events-none">
+            <div className="bg-white/90 px-4 py-2 rounded-lg shadow-xl border border-rose-100 flex flex-col items-center gap-1">
+              <span className="text-rose-600 font-black text-xs uppercase italic tracking-tighter">展開中止</span>
+              <span className="text-[10px] text-slate-500 font-bold">現在は展開を中止しています。</span>
+            </div>
+          </div>
+        )}
         <textarea
           readOnly={!isEditable}
           value={value}
           onChange={(e) => onUpdate(e.target.value)}
           rows={id === 'code-ps' ? 10 : 4}
-          className={`w-full font-mono text-xs p-5 rounded-xl bg-slate-950 text-emerald-400 border border-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-700 transition-all ${
+          className={`w-full font-mono text-xs p-5 rounded-xl bg-slate-950 border transition-all ${
+            isDiscontinued 
+              ? 'text-slate-500 border-slate-800' 
+              : 'text-emerald-400 border-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-700'
+          } ${
             isEditable ? 'cursor-text ring-2 ring-amber-500/50' : 'cursor-default'
           }`}
         />
-        <button
-          onClick={handleCopy}
-          className={`absolute bottom-4 right-4 flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold transition-all shadow-xl active:scale-90 border-2 ${
-            copied 
-              ? 'bg-emerald-500 text-white border-emerald-400' 
-              : 'bg-emerald-600 text-white hover:bg-emerald-500 border-emerald-500'
-          }`}
-        >
-          {copied ? <Check size={14} /> : <Clipboard size={14} />}
-          {copied ? '✓ コピー完了' : 'コピー'}
-        </button>
+        {!isDiscontinued && (
+          <button
+            onClick={handleCopy}
+            className={`absolute bottom-4 right-4 flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold transition-all shadow-xl active:scale-90 border-2 ${
+              copied 
+                ? 'bg-emerald-500 text-white border-emerald-400' 
+                : 'bg-emerald-600 text-white hover:bg-emerald-500 border-emerald-500'
+            }`}
+          >
+            {copied ? <Check size={14} /> : <Clipboard size={14} />}
+            {copied ? '✓ コピー完了' : 'コピー'}
+          </button>
+        )}
       </div>
     </motion.div>
   );
@@ -405,6 +437,7 @@ export default function App() {
                 value={scripts.MIITEL} 
                 isEditable={isEditMode}
                 accentColor="bg-blue-500"
+                isDiscontinued={true}
                 onUpdate={(v) => updateScript('MIITEL', v)}
               />
             </div>
